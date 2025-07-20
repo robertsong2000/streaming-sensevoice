@@ -31,9 +31,9 @@ sensevoice_models = {}
 class StreamingSenseVoice:
     def __init__(
         self,
-        chunk_size: int = 15,
-        padding: int = 12,
-        beam_size: int = 8,
+        chunk_size: int = 20,
+        padding: int = 16,
+        beam_size: int = 10,
         contexts: List[str] = None,
         language: str = "zh",
         textnorm: bool = True,
