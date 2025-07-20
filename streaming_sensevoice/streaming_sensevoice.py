@@ -31,12 +31,12 @@ sensevoice_models = {}
 class StreamingSenseVoice:
     def __init__(
         self,
-        chunk_size: int = 10,
-        padding: int = 8,
-        beam_size: int = 3,
+        chunk_size: int = 15,
+        padding: int = 12,
+        beam_size: int = 8,
         contexts: List[str] = None,
         language: str = "zh",
-        textnorm: bool = False,
+        textnorm: bool = True,
         device: str = "cpu",
         model: str = "iic/SenseVoiceSmall",
     ):
@@ -65,7 +65,7 @@ class StreamingSenseVoice:
         # features
         cmvn = load_cmvn(kwargs["frontend_conf"]["cmvn_file"]).numpy()
         self.neg_mean, self.inv_stddev = cmvn[0, :], cmvn[1, :]
-        self.fbank = OnlineFbank(window_type="hamming")
+        self.fbank = OnlineFbank(window_type="hanning")
         # decoder
         self.tokenizer = kwargs["tokenizer"]
         bpe_model = kwargs["tokenizer_conf"]["bpemodel"]
