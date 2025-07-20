@@ -29,3 +29,14 @@ python realtime_ws_server_demo.py
 # check cli options
 python realtime_ws_server_demo.py --help
 ```
+
+### WebSocket Client Features
+
+- Supports automatic language detection (Auto Detect) or specific languages (Chinese, English, Japanese)
+- System audio capture support
+  - Check the "Capture System Audio" checkbox
+  - Select the window or tab to share in the system sharing dialog
+  - Make sure to enable "Share system audio" option
+  - Adjust appropriate system and microphone volume levels
+- Real-time VAD (Voice Activity Detection) status display
+- Real-time transcription results with timestamp information
