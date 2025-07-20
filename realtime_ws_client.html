@@ -101,6 +101,10 @@
         <option value="zh">中文</option>
         <option value="ja">日本語</option>
       </select>
+      <div style="margin-top: 10px;">
+        <input type="checkbox" id="captureSystem" />
+        <label for="captureSystem">捕获系统声音</label>
+      </div>
       <hr />
       Transcription result will be displayed below:
       <div id="transcriptionResult"></div>
@@ -382,10 +386,70 @@
     //几个大一点的js，按需加载
     //调用录音
     var rec;
+    async function openAudioStream() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const shouldCaptureSystem = document.getElementById('captureSystem').checked;
+        
+        if (shouldCaptureSystem) {
+          try {
+            const systemStream = await navigator.mediaDevices.getDisplayMedia({ 
+              video: {
+                width: 1,
+                height: 1
+              },
+              audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
+              }
+            });
+            
+            // 合并麦克风和系统声音
+            const audioContext = new AudioContext({sampleRate: testSampleRate});
+            const micSource = audioContext.createMediaStreamSource(stream);
+            const systemSource = audioContext.createMediaStreamSource(systemStream);
+            
+            // 创建增益节点来控制音量
+            const micGain = audioContext.createGain();
+            const systemGain = audioContext.createGain();
+            micGain.gain.value = 0.5; // 麦克风音量
+            systemGain.gain.value = 0.8; // 系统声音音量
+            
+            micSource.connect(micGain);
+            systemSource.connect(systemGain);
+            
+            // 使用 createChannelMixer 将双声道合并为单声道
+            const merger = audioContext.createChannelMerger(1);
+            micGain.connect(merger, 0, 0);
+            systemGain.connect(merger, 0, 0);
+            
+            const dest = audioContext.createMediaStreamDestination();
+            merger.connect(dest);
+            
+            // 保存引用以便后续清理
+            window.currentAudioContext = audioContext;
+            
+            return dest.stream;
+          } catch (error) {
+            console.error('获取系统声音失败:', error);
+            alert('获取系统声音失败，将只使用麦克风录音');
+            return stream;
+          }
+        }
+        
+        return stream;
+      } catch (error) {
+        throw new Error('获取音频流失败: ' + error.message);
+      }
+    }
+
     async function recStart(type) {
       if (rec) {
         rec.close();
       }
+
+      const stream = await openAudioStream();
 
       var clearBufferIdx = 0,
         processTime = 0;
@@ -393,6 +457,7 @@
         type: type,
         sampleRate: testSampleRate,
         bitRate: testBitRate,
+        sourceStream: stream,
         onProcess: function (
           buffers,
           powerLevel,
@@ -463,6 +528,12 @@
         if (!rec2) {
           console.log("未开始录音", 1);
           return;
+        }
+        
+        // 清理音频上下文
+        if (window.currentAudioContext) {
+          await window.currentAudioContext.close();
+          window.currentAudioContext = null;
         }
         rec2.watchDogTimer = 0; //停止监控onProcess超时
         console.log("正在停止录音...", "#aaa");
