@@ -29,6 +29,12 @@
         background-color: red;
         color: white;
       }
+      #languageSelect {
+        margin-left: 10px;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
       div#transcriptionResult > div {
         display: grid;
         grid-template-columns: 30px 1fr;
@@ -89,6 +95,12 @@
   <body>
     <div>
       <button id="recordButton">Start Recording</button>
+      <select id="languageSelect">
+        <option value="auto">Auto Detect</option>
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+      </select>
       <hr />
       Transcription result will be displayed below:
       <div id="transcriptionResult"></div>
@@ -248,6 +260,8 @@
 
       // Construct the query parameters
       var queryParams = [];
+      var language = document.getElementById("languageSelect").value;
+      queryParams.push(`language=${language}`);
       var queryString =
         queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
 

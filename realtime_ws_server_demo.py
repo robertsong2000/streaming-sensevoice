@@ -69,6 +69,7 @@ class Config(BaseSettings, cli_parse_args=True, cli_use_class_docs_for_groups=Tr
         550, description="VAD min slience duration (ms)"
     )
     VAD_THRESHOLD: float = Field(0.5, description="VAD threshold")
+    LANGUAGE: str = Field("auto", description="Recognition language (auto, en, zh, ja)")
 
 
 config = Config()
@@ -134,9 +135,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 "vad_min_silence_duration_ms", config.VAD_MIN_SILENCE_DURATION_MS
             )
         )
+        language = query_params.get("language", [config.LANGUAGE])[0]
 
         sensevoice_model = StreamingSenseVoice(
-            model=config.SENSEVOICE_MODEL_PATH, device=config.DEVICE
+            model=config.SENSEVOICE_MODEL_PATH, 
+            device=config.DEVICE,
+            language=language
         )
         vad_iterator = VADIterator(
             version=config.SILEROVAD_VERSION,
