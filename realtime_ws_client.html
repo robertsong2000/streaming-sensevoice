@@ -83,6 +83,27 @@
       #languageSelect:hover {
         border-color: #4CAF50;
       }
+
+      .export-button {
+        margin-top: 15px;
+        width: 100%;
+        border-radius: 25px;
+        border: 2px solid #4CAF50;
+        background-color: white;
+        color: #4CAF50;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .export-button:hover {
+        background-color: #4CAF50;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      }
       div#transcriptionResult > div {
         display: grid;
         grid-template-columns: 40px 1fr;
@@ -221,6 +242,7 @@
         <input type="checkbox" id="captureSystem" />
         <label for="captureSystem">捕获系统声音</label>
       </div>
+      <button id="exportButton" class="export-button">导出识别结果</button>
     </div>
     
     <div class="result-header">识别结果将在下方显示：</div>
@@ -453,6 +475,44 @@
         stopRecording();
       }
     }
+
+    // 导出识别结果为文本文件
+    function exportTranscriptionResult() {
+      if (transcriptionList.length === 0) {
+        alert('没有可导出的识别结果');
+        return;
+      }
+
+      const content = transcriptionList
+        .map(trans => {
+          const timeRange = trans.is_final ? 
+            `${trans.begin_at} ~ ${trans.end_at}` : 
+            `${trans.begin_at} ~ Now`;
+          return `[${timeRange}] ${trans.data.raw_text}`;
+        })
+        .join('\n');
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // 生成文件名：transcript_年月日_时分秒.txt
+      const now = new Date();
+      const timestamp = now.toISOString()
+        .replace(/[:\-]/g, '')
+        .split('.')[0];
+      const filename = `transcript_${timestamp}.txt`;
+      
+      link.href = url;
+      link.download = filename;
+      link.click();
+      
+      URL.revokeObjectURL(url);
+    }
+
+    // 添加导出按钮事件监听
+    document.getElementById('exportButton')
+      .addEventListener('click', exportTranscriptionResult);
 
     async function stopRecording() {
       try {
